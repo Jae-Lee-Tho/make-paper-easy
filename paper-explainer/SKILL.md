@@ -76,9 +76,47 @@ Skip a visual when a sentence or small table says it just as well. Only plot val
 
 ### Choose the figure backend
 
-**Built-in (default, no API key).** Draw figures yourself with whatever the environment offers: inline SVG/chart tools, an HTML artifact, or a matplotlib PNG. Use this unless PaperBanana mode applies.
+Go through these in order for each figure:
 
-**PaperBanana (optional, publication-style figures).** Use it when the user asks for it ("use PaperBanana", "make it look like a paper figure") or has set it up. It needs `pip install 'paperbanana[pdf]'` and one of `GOOGLE_API_KEY`, `OPENAI_API_KEY`, `OPENROUTER_API_KEY` or `ATLASCLOUD_API_KEY`. Run `paperbanana doctor` to check.
+1. **Chart of numbers?** Always draw it in code (matplotlib, or the environment's chart tool) from values copied from the paper. Never send numbers through an image model.
+2. **Diagram, soft illustrated look (default for diagrams): hybrid mode.** Claude writes all text and layout as SVG; FLUX draws only text-free art pieces. See below. If no Cloudflare credentials are set, the same script renders soft-SVG cards without art.
+3. **PaperBanana**, only when the user asks for it and has a key. See the end of this section.
+4. **No image model at all and the user wants painted art:** also give them `gemini_prompt.py`'s output to paste into the free Gemini app.
+
+### Hybrid mode: exact SVG text + FLUX art
+
+Needs `pip install resvg-py pillow` and, for the art, a free Cloudflare account with `CF_ACCOUNT_ID` and `CF_API_TOKEN` set (see README). Free tier is roughly 100-170 images a day.
+
+**a. Plan.** Write `figures/<name>/spec.json` (format in `compose_figure.py`'s docstring; worked example in `examples/libero-perm/spec.json`):
+- 3-5 panels, one per step or component of the paper's method, in reading order.
+- `title`: 2-4 words, the paper's own term for that step. `subtitle`: one short line, at most ~50 characters. `chips`: 0-2 exact facts from the paper (counts, metric names, numbers).
+- `art`: a FLUX prompt describing a concrete object or scene for that step. Describe things, never words: "a checkmark badge", not "a sign saying PASS". The shared `style` block is appended automatically; override it in the spec only if the user wants a different look.
+- Every label and number must come from the paper.
+
+**b. Draw the art** (runs where the credentials are, usually the user's computer):
+```bash
+python scripts/flux_art.py figures/<name>/spec.json
+```
+Exit code 3 means no credentials: say so in one line and continue; step c renders soft cards instead.
+
+**c. Compose and render:**
+```bash
+python scripts/compose_figure.py figures/<name>/spec.json            # with art
+python scripts/compose_figure.py figures/<name>/spec.json --no-art   # soft-SVG only
+```
+This writes `figure.svg` (editable) and `figure.png` (2x, crisp).
+
+**d. Review: required.** Open `figure.png` and look at it. Check:
+- No text overlaps, cut-off text, or text running outside a card.
+- Each art piece shows what its step says, and contains no stray letters or garbled text.
+- Every label and number matches the paper.
+- The pieces look like one set (palette, style).
+
+Fix and re-render: shorten text in the spec for layout problems; for a bad art piece, tweak its prompt and run `flux_art.py spec.json --force <panel id>`. Repeat until clean, at most 3 rounds, then send the PNG and SVG to the user.
+
+### PaperBanana (optional, paid)
+
+Use it when the user asks for it ("use PaperBanana") or has set it up. It needs `pip install 'paperbanana[pdf]'` and one of `GOOGLE_API_KEY`, `OPENAI_API_KEY`, `OPENROUTER_API_KEY` or `ATLASCLOUD_API_KEY`. Run `paperbanana doctor` to check.
 
 - Diagram: write the paper's method section to `method.txt`, then:
   ```bash

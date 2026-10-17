@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1128" height="450" viewBox="0 0 1128 450">
+<defs><marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#9A988F" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+<rect width="1128" height="450" fill="#FFFFFF"/>
+<text x="40" y="58" font-family="Helvetica, Arial, 'DejaVu Sans', sans-serif" font-size="20" font-weight="bold" fill="#2C2C2A">LIBERO-PeRM: how preference data is generated</text>
+<g id="p1">
+<rect x="40" y="84" width="220" height="282" rx="18" fill="#F1EEFC" stroke="#CFC8F3" stroke-width="1"/>
+<clipPath id="clip-p1"><rect x="52" y="96" width="196" height="150" rx="12"/></clipPath>
+<rect x="52" y="96" width="196" height="150" rx="12" fill="#FFFFFF"/>
+<circle cx="120.0" cy="177.0" r="34" fill="#E2DCFA"/>
+<circle cx="176.0" cy="161.0" r="24" fill="#CFC8F3" opacity="0.6"/>
+<circle cx="190.0" cy="201.0" r="12" fill="#E2DCFA"/>
+<rect x="52" y="96" width="196" height="150" rx="12" fill="none" stroke="#CFC8F3" stroke-width="1"/>
+<text x="150.0" y="264" text-anchor="middle" font-family="Helvetica, Arial, 'DejaVu Sans', sans-serif" font-size="15" font-weight="bold" fill="#3C3489">Pick preference +</text>
+<text x="150.0" y="282" text-anchor="middle" font-family="Helvetica, Arial, 'DejaVu Sans', sans-serif" font-size="15" font-weight="bold" fill="#3C3489">scene</text>
+<text x="150.0" y="304" text-anchor="middle" font-family="Helvetica, Arial, 'DejaVu Sans', sans-serif" font-size="12" fill="#6B6A64">VLM makes a minimal layout</text>
+<text x="150.0" y="320" text-anchor="middle" font-family="Helvetica, Arial, 'DejaVu Sans', sans-serif" font-size="12" fill="#6B6A64">edit</text>
+<rect x="91.0" y="336" width="118" height="22" rx="11" fill="#E2DCFA" stroke="#CFC8F3" stroke-width="0.8"/>
+<text x="150.0" y="351" text-anchor="middle" font-family="Helvetica, Arial, 'DejaVu Sans', sans-serif" font-size="11.5" font-weight="bold" fill="#3C3489">37 preferences</text>
+</g>
+<g id="p2">
+<rect x="316" y="84" width="220" height="282" rx="18" fill="#EAF3FC" stroke="#BFD8F2" stroke-width="1"/>
+<clipPath id="clip-p2"><rect x="328" y="96" width="196" height="150" rx="12"/></clipPath>
+<rect x="328" y="96" width="196" height="150" rx="12" fill="#FFFFFF"/>
+<circle cx="396.0" cy="177.0" r="34" fill="#D7E8F9"/>
+<circle cx="452.0" cy="161.0" r="24" fill="#BFD8F2" opacity="0.6"/>
+<circle cx="466.0" cy="201.0" r="12" fill="#D7E8F9"/>
+<rect x="328" y="96" width="196" height="150" rx="12" fill="none" stroke="#BFD8F2" stroke-width="1"/>
+<text x="426.0" y="264" text-anchor="middle" font-family="Helvetica, Arial, 'DejaVu Sans', sans-serif" font-size="15" font-weight="bold" fill="#174A7C">Plan subtasks</text>
+<text x="426.0" y="286" text-anchor="middle" font-family="Helvetica, Arial, 'DejaVu Sans', sans-serif" font-size="12" fill="#6B6A64">Paired plans: with and</text>
+<text x="426.0" y="302" text-anchor="middle" font-family="Helvetica, Arial, 'DejaVu Sans', sans-serif" font-size="12" fill="#6B6A64">without preference</text>
+<rect x="377.5" y="336" width="97" height="22" rx="11" fill="#D7E8F9" stroke="#BFD8F2" stroke-width="0.8"/>
+<text x="426.0" y="351" text-anchor="middle" font-family="Helvetica, Arial, 'DejaVu Sans', sans-serif" font-size="11.5" font-weight="bold" fill="#174A7C">VLM planner</text>
+</g>
+<g id="p3">
+<rect x="592" y="84" width="220" height="282" rx="18" fill="#FCEFE8" stroke="#F2C9B5" stroke-width="1"/>
+<clipPath id="clip-p3"><rect x="604" y="96" width="196" height="150" rx="12"/></clipPath>
+<rect x="604" y="96" width="196" height="150" rx="12" fill="#FFFFFF"/>
+<circle cx="672.0" cy="177.0" r="34" fill="#F8DDCF"/>
+<circle cx="728.0" cy="161.0" r="24" fill="#F2C9B5" opacity="0.6"/>
+<circle cx="742.0" cy="201.0" r="12" fill="#F8DDCF"/>
+<rect x="604" y="96" width="196" height="150" rx="12" fill="none" stroke="#F2C9B5" stroke-width="1"/>
+<text x="702.0" y="264" text-anchor="middle" font-family="Helvetica, Arial, 'DejaVu Sans', sans-serif" font-size="15" font-weight="bold" fill="#7A3518">Generate demos</text>
+<text x="702.0" y="286" text-anchor="middle" font-family="Helvetica, Arial, 'DejaVu Sans', sans-serif" font-size="12" fill="#6B6A64">Skill library + OMPL motion</text>
+<text x="702.0" y="302" text-anchor="middle" font-family="Helvetica, Arial, 'DejaVu Sans', sans-serif" font-size="12" fill="#6B6A64">planner</text>
+<rect x="643.0" y="336" width="118" height="22" rx="11" fill="#F8DDCF" stroke="#F2C9B5" stroke-width="0.8"/>
+<text x="702.0" y="351" text-anchor="middle" font-family="Helvetica, Arial, 'DejaVu Sans', sans-serif" font-size="11.5" font-weight="bold" fill="#7A3518">40.8K episodes</text>
+</g>
+<g id="p4">
+<rect x="868" y="84" width="220" height="282" rx="18" fill="#E8F6F0" stroke="#B9E3D2" stroke-width="1"/>
+<clipPath id="clip-p4"><rect x="880" y="96" width="196" height="150" rx="12"/></clipPath>
+<rect x="880" y="96" width="196" height="150" rx="12" fill="#FFFFFF"/>
+<circle cx="948.0" cy="177.0" r="34" fill="#D3EFE3"/>
+<circle cx="1004.0" cy="161.0" r="24" fill="#B9E3D2" opacity="0.6"/>
+<circle cx="1018.0" cy="201.0" r="12" fill="#D3EFE3"/>
+<rect x="880" y="96" width="196" height="150" rx="12" fill="none" stroke="#B9E3D2" stroke-width="1"/>
+<text x="978.0" y="264" text-anchor="middle" font-family="Helvetica, Arial, 'DejaVu Sans', sans-serif" font-size="15" font-weight="bold" fill="#0F5E48">Score satisfaction</text>
+<text x="978.0" y="286" text-anchor="middle" font-family="Helvetica, Arial, 'DejaVu Sans', sans-serif" font-size="12" fill="#6B6A64">Trajectory metrics + VLM</text>
+<text x="978.0" y="302" text-anchor="middle" font-family="Helvetica, Arial, 'DejaVu Sans', sans-serif" font-size="12" fill="#6B6A64">check</text>
+<rect x="940.0" y="336" width="34" height="22" rx="11" fill="#D3EFE3" stroke="#B9E3D2" stroke-width="0.8"/>
+<text x="957.0" y="351" text-anchor="middle" font-family="Helvetica, Arial, 'DejaVu Sans', sans-serif" font-size="11.5" font-weight="bold" fill="#0F5E48">SR</text>
+<rect x="982.0" y="336" width="34" height="22" rx="11" fill="#D3EFE3" stroke="#B9E3D2" stroke-width="0.8"/>
+<text x="999.0" y="351" text-anchor="middle" font-family="Helvetica, Arial, 'DejaVu Sans', sans-serif" font-size="11.5" font-weight="bold" fill="#0F5E48">SA</text>
+</g>
+<path d="M268 225.0 L306 225.0" stroke="#9A988F" stroke-width="2" fill="none" stroke-linecap="round" marker-end="url(#ah)"/>
+<path d="M544 225.0 L582 225.0" stroke="#9A988F" stroke-width="2" fill="none" stroke-linecap="round" marker-end="url(#ah)"/>
+<path d="M820 225.0 L858 225.0" stroke="#9A988F" stroke-width="2" fill="none" stroke-linecap="round" marker-end="url(#ah)"/>
+<text x="40" y="396" font-family="Helvetica, Arial, 'DejaVu Sans', sans-serif" font-size="13" font-style="italic" fill="#6B6A64">A preference changes how a task is done, not what is done. Each step is checked automatically, giving task success (SR) and preference</text>
+<text x="40" y="414" font-family="Helvetica, Arial, 'DejaVu Sans', sans-serif" font-size="13" font-style="italic" fill="#6B6A64">satisfaction (SA).</text>
+</svg>

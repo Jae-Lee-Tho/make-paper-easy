@@ -1,0 +1,42 @@
+{
+  "title": "LIBERO-PeRM: how preference data is generated",
+  "caption": "A preference changes how a task is done, not what is done. Each step is checked automatically, giving task success (SR) and preference satisfaction (SA).",
+  "layout": "row",
+  "arrows": true,
+  "seed": 7,
+  "art_dir": "art",
+  "panels": [
+    {
+      "id": "p1",
+      "title": "Pick preference + scene",
+      "subtitle": "VLM makes a minimal layout edit",
+      "art": "top-down view of a small tabletop with a white ceramic mug, a round plate and a wooden coaster, a simple robot arm resting at the edge of the table",
+      "chips": ["37 preferences"],
+      "color": "lavender"
+    },
+    {
+      "id": "p2",
+      "title": "Plan subtasks",
+      "subtitle": "Paired plans: with and without preference",
+      "art": "a friendly abstract AI brain made of soft rounded nodes, looking at a small floating thought bubble that contains a mug with its handle highlighted in peach",
+      "chips": ["VLM planner"],
+      "color": "sky"
+    },
+    {
+      "id": "p3",
+      "title": "Generate demos",
+      "subtitle": "Skill library + OMPL motion planner",
+      "art": "side view of a white robot arm gently grasping a ceramic mug by its handle, a faint dotted curved path showing the arm's motion toward a plate",
+      "chips": ["40.8K episodes"],
+      "color": "peach"
+    },
+    {
+      "id": "p4",
+      "title": "Score satisfaction",
+      "subtitle": "Trajectory metrics + VLM check",
+      "art": "a mug placed neatly on a plate with its handle facing outward, a soft mint checkmark badge floating beside it",
+      "chips": ["SR", "SA"],
+      "color": "mint"
+    }
+  ]
+}
