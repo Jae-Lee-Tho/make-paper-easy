@@ -46,11 +46,12 @@ pip install 'markitdown[pdf]' resvg-py pillow matplotlib
 /make-paper-easy <link> in Korean
 ```
 
-You get:
-- `paper.md`: the full paper as clean Markdown.
-- A 5-minute summary: TL;DR, background terms explained, the problem, the method, key findings with real numbers, and limitations.
-- `figure.png` + `.svg`: a method diagram.
-- `results.png` + `.svg`: charts of the headline results.
+You get **one study sheet**, `make-paper-easy/<paper>/<paper>-easy.png` (plus a PDF), with everything in reading order:
+TL;DR → background terms → the problem → what they did → method diagram → key findings → results charts → limitations.
+
+The parts are saved next to it, in case you want them: `paper.md` (the full paper), `summary.json`, and `figure`/`results` as both PNG and editable SVG.
+
+<p align="center"><img src="examples/libero-perm-dense/libero-perm-easy.png" width="520" alt="Example study sheet (Korean)"/></p>
 
 ### How figures are made (free)
 
@@ -107,6 +108,7 @@ skills/make-paper-easy/
     ├── convert.py         # PDF/URL → Markdown via MarkItDown
     ├── compose_diagram.py # spec.json → dense PaperBanana-style method diagram (SVG + PNG)
     ├── plot_style.py      # paper-style matplotlib theme for results charts
+    ├── make_sheet.py      # summary.json + figures → ONE study-sheet PNG/PDF
     ├── compose_figure.py  # spec.json → simple card figure with large art
     ├── flux_art.py        # text-free art pieces via Cloudflare FLUX (free tier)
     ├── gemini_prompt.py   # spec.json → prompt for the free Gemini app

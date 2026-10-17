@@ -18,10 +18,17 @@ Anything after the link is a plain-language instruction (language, focus, figure
 
 Input: one research paper as an attached PDF, a PDF URL, or a paper webpage (arXiv abs/html page, project page, publisher page).
 
-Output, in this order:
-1. A clean Markdown file of the full paper, given to the user.
-2. A summary written for an undergraduate engineering/CS student.
-3. Visuals of the paper's key structure and data, only where they help.
+**The deliverable is ONE image: `<slug>-easy.png`**, a study sheet with the summary, the method diagram and the results charts top to bottom. The user should never have to scroll back through chat to find the summary. Everything goes in one output folder:
+
+```
+make-paper-easy/<slug>/
+├── <slug>-easy.png      ← the deliverable (plus .pdf)
+├── paper.md             full paper as Markdown
+├── summary.json         the summary text (source of the sheet)
+├── figure.png/.svg      method diagram   (+ spec.json)
+└── results.png/.svg     results charts   (+ results_plot.py)
+```
+`<slug>` is a short lowercase name for the paper (e.g. `libero-perm`). Create the folder in the current working directory.
 
 ## Step 1 - Get the paper as Markdown
 
@@ -42,10 +49,8 @@ By input type:
 - **PDF URL**: try `convert.py` with the URL directly. If the environment blocks the download, do not retry with other shell tools. For arXiv, switch to the HTML or abs page (below). Otherwise ask the user to attach the PDF.
 - **Webpage** (arXiv abs/html, project page): use your web-fetch tool and ask for the full paper text as Markdown, keeping section headings, tables and figure captions. Save it to `<short-title>.md`. For arXiv, prefer `arxiv.org/html/<id>` when it exists; fall back to the abs page.
 
-Name the file after the paper: `<first-author-or-short-title>-<arxiv-id-if-any>.md`.
+Save it as `make-paper-easy/<slug>/paper.md`.
 Clean obvious extraction junk (repeated page headers/footers, broken hyphenation) only if quick; never rewrite the paper's content.
-Give the file to the user.
-
 If the paper text is already in the conversation (e.g. an attached .md), skip conversion and reuse it.
 
 ## Step 2 - Read before writing
@@ -57,12 +62,12 @@ Read the whole Markdown. Note:
 - Stated limitations.
 - Prerequisite concepts an undergrad might not know (e.g. LoRA, VLA, SFT, diffusion, Kalman filter).
 
-## Step 3 - Write the summary
+## Step 3 - Write the summary into `summary.json`
 
-Audience: an undergraduate ECE/CS student who knows calculus, linear algebra, basic probability and programming, but not this subfield's jargon. Write in the user's language.
+Write the summary as `make-paper-easy/<slug>/summary.json`, not as chat text (format in `scripts/make_sheet.py`'s docstring; full example: `examples/libero-perm-dense/summary.json`). Audience: an undergraduate ECE/CS student who knows calculus, linear algebra, basic probability and programming, but not this subfield's jargon. Write in the user's language (Korean, Chinese and Japanese render fine).
 
-Structure:
-1. **TL;DR** - one paragraph: what they did and the single most important finding, in plain words.
+Structure (each item maps to a field or block in `summary.json`):
+1. **TL;DR** (`tldr`) - one paragraph: what they did and the single most important finding, in plain words.
 2. **Background you need** - 3 to 6 short bullets defining jargon the paper assumes, one sentence each, with an everyday analogy where it helps.
 3. **The problem** - what gap the paper fills.
 4. **What they did** - the method or contribution, broken into its parts.
@@ -75,6 +80,8 @@ Rules:
 - Explain an acronym the first time it appears.
 - Prefer short paragraphs and bullets; no walls of text.
 - Keep the whole summary readable in about 5 minutes.
+- Use `**bold**` for the key term at the start of each bullet.
+- Block order and widths that read well: Background + Problem (`"width": "half"` pair) → What they did → method diagram → Key findings → results chart → Limitations + Why it matters (half pair). Put each figure right after the text it illustrates, with a one-line caption.
 
 ## Step 4 - Visualize where it earns its place
 
@@ -97,7 +104,7 @@ Go through these in order for each figure:
 
 ### Dense diagrams (PaperBanana-style)
 
-Write `figures/<name>/spec.json` in the `compose_diagram.py` format (docstring; worked example: `examples/libero-perm-dense/spec.json`, which recreates the paper's Figure 3).
+Write `make-paper-easy/<slug>/spec.json` in the `compose_diagram.py` format (docstring; worked example: `examples/libero-perm-dense/spec.json`, which recreates the paper's Figure 3).
 
 Plan it like the paper's own figure, not like a summary:
 - **Modules = groups.** One group per stage or component the paper names (e.g. "Lens module", "Reasoning module"), left to right in data-flow order. Use `"style": "plain"` for an Inputs column and an Outputs group at the ends. Usually 3-5 groups.
@@ -108,8 +115,8 @@ Plan it like the paper's own figure, not like a summary:
 
 Render:
 ```bash
-python scripts/compose_diagram.py figures/<name>/spec.json           # icons (+ art thumbnails if present)
-python scripts/flux_art.py figures/<name>/spec.json                  # optional: thumbnails for nodes with "art"
+python scripts/compose_diagram.py make-paper-easy/<slug>/spec.json           # icons (+ art thumbnails if present)
+python scripts/flux_art.py make-paper-easy/<slug>/spec.json                  # optional: thumbnails for nodes with "art"
 ```
 For thumbnails, give `art` only to the 2-4 nodes that show something concrete (a scene, a robot, a point cloud, an image grid). Keep icons for abstract steps.
 
@@ -137,7 +144,7 @@ apply()
 
 Needs `pip install resvg-py pillow` and, for the art, a free Cloudflare account with `CF_ACCOUNT_ID` and `CF_API_TOKEN` set (see README). Free tier is roughly 100-170 images a day.
 
-**a. Plan.** Write `figures/<name>/spec.json` (format in `compose_figure.py`'s docstring; worked example in `examples/libero-perm/spec.json`):
+**a. Plan.** Write `make-paper-easy/<slug>/spec.json` (format in `compose_figure.py`'s docstring; worked example in `examples/libero-perm/spec.json`):
 - 3-5 panels, one per step or component of the paper's method, in reading order.
 - `title`: 2-4 words, the paper's own term for that step. `subtitle`: one short line, at most ~50 characters. `chips`: 0-2 exact facts from the paper (counts, metric names, numbers).
 - `art`: a FLUX prompt describing a concrete object or scene for that step. Describe things, never words: "a checkmark badge", not "a sign saying PASS". The shared `style` block is appended automatically; override it in the spec only if the user wants a different look.
@@ -145,14 +152,14 @@ Needs `pip install resvg-py pillow` and, for the art, a free Cloudflare account 
 
 **b. Draw the art** (runs where the credentials are, usually the user's computer):
 ```bash
-python scripts/flux_art.py figures/<name>/spec.json
+python scripts/flux_art.py make-paper-easy/<slug>/spec.json
 ```
 Exit code 3 means no credentials: say so in one line and continue; step c renders soft cards instead.
 
 **c. Compose and render:**
 ```bash
-python scripts/compose_figure.py figures/<name>/spec.json            # with art
-python scripts/compose_figure.py figures/<name>/spec.json --no-art   # soft-SVG only
+python scripts/compose_figure.py make-paper-easy/<slug>/spec.json            # with art
+python scripts/compose_figure.py make-paper-easy/<slug>/spec.json --no-art   # soft-SVG only
 ```
 This writes `figure.svg` (editable) and `figure.png` (2x, crisp).
 
@@ -181,8 +188,18 @@ Rules for PaperBanana mode:
 - It costs money (roughly $0.40 per diagram at default Gemini settings). Each call is capped at $1 by default (`--budget`). Before generating more than two figures, run with `--cost-only` and tell the user the estimate.
 - Exit code 3 means it isn't installed or no key is set. Say so in one line and fall back to built-in figures; don't stop the task.
 - Diagrams are AI-generated images. Check each one against the paper before sending it, and redo or drop any figure that shows wrong steps, labels or numbers.
-- Give the user the image files, and still write the explanation around each figure in the reply.
+- The PaperBanana images go into the sheet like any other figure.
 
-## Step 5 - Finish
+## Step 5 - Build the sheet and finish
 
-End with one line offering a next step (a quiz on the paper, a deeper dive into one section, or a comparison with a related paper). Don't recap the steps taken.
+```bash
+python scripts/make_sheet.py make-paper-easy/<slug>/summary.json --pdf
+```
+Open `<slug>-easy.png` and review it like the figures: no clipped or overflowing text, cards in the right order, figures readable, every number matching the paper. Fix `summary.json` and rebuild if needed.
+
+Then reply in chat with **only**:
+1. The path to `<slug>-easy.png` (send the file too if the environment can).
+2. The one-sentence TL;DR.
+3. One line offering a next step (a quiz, a deeper dive into one section, or a comparison with a related paper).
+
+Do not repeat the summary in chat, since it lives in the sheet. Don't recap the steps taken.
