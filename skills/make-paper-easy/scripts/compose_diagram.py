@@ -263,7 +263,7 @@ def draw_node(n, art_dir, with_art):
         out.append(f'<rect x="{x + w / 2 - 26}" y="{y + 8}" width="52" height="{vis_h - 4}" rx="10" fill="{c[0]}"/>')
         out.append(icon(n.get("icon", "layers"), x + w / 2 - 18, y + 13, c))
     ty = y + vis_h + 24
-    title_chars, sub_chars = int((w - 12) / 8.0), int((w - 12) / 6.0)  # wrap to the node's real width
+    title_chars, sub_chars = int((w - 12) / 8.0), int((w - 12) / 5.7)  # wrap to the node's real width
     tl = wrap(n.get("title", ""), title_chars)
     if len(tl) > 2:
         WARNINGS.append(f'node "{n["id"]}": title needs {len(tl)} lines, only 2 fit; shorten it')

@@ -1,0 +1,11 @@
+# Core: paper → Markdown, figures, study sheet (PNG + PDF)
+markitdown[pdf]>=0.1
+resvg-py>=0.5
+pillow>=10
+matplotlib>=3.8
+numpy>=1.24
+reportlab>=4.0
+
+# Optional extras (not needed for the default free pipeline):
+#   paperbanana[pdf]   paid PaperBanana figures   (scripts/pb_figure.py)
+#   FLUX art via Cloudflare Workers AI needs no package, only CF_ACCOUNT_ID / CF_API_TOKEN

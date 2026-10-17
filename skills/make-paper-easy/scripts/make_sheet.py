@@ -3,7 +3,8 @@
 Usage:
     python make_sheet.py summary.json                # -> <name>-easy.png next to summary.json
     python make_sheet.py summary.json --out sheet    # -> sheet.png
-    python make_sheet.py summary.json --pdf          # also write a PDF (handy for printing/zooming)
+    python make_sheet.py summary.json --pdf          # also a multi-page PDF with selectable text (Letter)
+    python make_sheet.py summary.json --pdf --page a4
 
 summary.json:
 {
@@ -24,7 +25,7 @@ summary.json:
 - **bold** works in text and bullets, and so do x^{2} / d_{k} super/subscripts. CJK text works.
 - Figure paths are relative to summary.json.
 
-Requires: pip install resvg-py pillow
+Requires: pip install resvg-py pillow   (PDF: reportlab, matplotlib)
 """
 import argparse
 import base64
@@ -259,12 +260,169 @@ def build(spec, base):
             f'<rect width="{W}" height="{height:.0f}" fill="#FFFFFF"/>' + "\n".join(parts) + "</svg>")
 
 
+# ---------------------------------------------------------------------------
+# Paginated PDF (Letter/A4) with real, selectable text. Uses reportlab and the
+# DejaVu Sans font that ships with matplotlib, so it renders the same everywhere.
+# ---------------------------------------------------------------------------
+CJK_RE = re.compile(r"[\u1100-\u11ff\u3000-\u9fff\uac00-\ud7af]")
+
+
+def _rl_markup(text):
+    """Escape for reportlab Paragraph and convert **bold**, ^{sup}, _{sub}."""
+    t = normalize(str(text)).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+    t = re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", t)
+    t = re.sub(r"\^\{([^}]*)\}", r"<super>\1</super>", t)
+    t = re.sub(r"_\{([^}]*)\}", r"<sub>\1</sub>", t)
+    return t
+
+
+def _register_fonts():
+    import matplotlib
+    from reportlab.pdfbase import pdfmetrics
+    from reportlab.pdfbase.ttfonts import TTFont
+    from reportlab.lib.fonts import addMapping
+    d = Path(matplotlib.__file__).parent / "mpl-data" / "fonts" / "ttf"
+    pdfmetrics.registerFont(TTFont("MPE", str(d / "DejaVuSans.ttf")))
+    pdfmetrics.registerFont(TTFont("MPE-Bold", str(d / "DejaVuSans-Bold.ttf")))
+    pdfmetrics.registerFont(TTFont("MPE-Italic", str(d / "DejaVuSans-Oblique.ttf")))
+    pdfmetrics.registerFont(TTFont("MPE-BoldItalic", str(d / "DejaVuSans-BoldOblique.ttf")))
+    addMapping("MPE", 0, 0, "MPE")
+    addMapping("MPE", 1, 0, "MPE-Bold")
+    addMapping("MPE", 0, 1, "MPE-Italic")
+    addMapping("MPE", 1, 1, "MPE-BoldItalic")
+
+
+def build_pdf(spec, base, out_path, page="letter"):
+    from reportlab.lib import colors
+    from reportlab.lib.pagesizes import A4, letter
+    from reportlab.lib.styles import ParagraphStyle
+    from reportlab.lib.units import inch
+    from reportlab.platypus import (Image as RLImage, KeepTogether, Paragraph, SimpleDocTemplate,
+                                    Spacer, Table, TableStyle)
+    from PIL import Image
+
+    _register_fonts()
+    size = A4 if page == "a4" else letter
+    margin = 0.6 * inch
+    frame_w, frame_h = size[0] - 2 * margin, size[1] - 2 * margin - 0.3 * inch
+    C = colors.HexColor
+    st = {
+        "title": ParagraphStyle("t", fontName="MPE", fontSize=19, leading=23, textColor=C(INK)),
+        "meta": ParagraphStyle("m", fontName="MPE", fontSize=8.5, leading=11, textColor=C(MUTED)),
+        "tldr_l": ParagraphStyle("tl", fontName="MPE-Bold", fontSize=7.5, leading=10, textColor=C("#F2C94C")),
+        "tldr": ParagraphStyle("tt", fontName="MPE", fontSize=10, leading=14.5, textColor=colors.white),
+        "body": ParagraphStyle("b", fontName="MPE", fontSize=9, leading=13, textColor=C(INK)),
+        "cap": ParagraphStyle("c", fontName="MPE", fontSize=7.8, leading=10.5, textColor=C(MUTED)),
+    }
+
+    def block(blk, accent, width, extra=0.0):
+        tint, ink, bar = accent
+        head = ParagraphStyle("h", fontName="MPE-Bold", fontSize=11.5, leading=15, textColor=C(ink))
+        bullet = ParagraphStyle("bl", parent=st["body"], leftIndent=11, bulletIndent=0, bulletColor=C(bar),
+                                bulletFontName="MPE-Bold", spaceAfter=3)
+        rows = []
+        if blk.get("heading"):
+            rows.append([Paragraph(_rl_markup(blk["heading"]), head)])
+        if blk.get("text"):
+            rows.append([Paragraph(_rl_markup(blk["text"]), st["body"])])
+        for b in blk.get("bullets", []):
+            rows.append([Paragraph(_rl_markup(b), bullet, bulletText="•")])
+        t = Table(rows, colWidths=[width], splitByRow=1)
+        t.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, -1), C(tint)),
+            ("LINEBEFORE", (0, 0), (0, -1), 3, C(bar)),
+            ("LEFTPADDING", (0, 0), (-1, -1), 12), ("RIGHTPADDING", (0, 0), (-1, -1), 10),
+            ("TOPPADDING", (0, 0), (-1, -1), 2), ("BOTTOMPADDING", (0, 0), (-1, -1), 2),
+            ("TOPPADDING", (0, 0), (-1, 0), 9), ("BOTTOMPADDING", (0, -1), (-1, -1), 9 + extra),
+            ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ]))
+        return t
+
+    def figure(blk):
+        p = (base / blk["path"]).resolve()
+        if not p.exists():
+            print(f"figure not found: {p}", file=sys.stderr)
+            return None
+        iw, ih = Image.open(p).size
+        w = frame_w
+        h = w * ih / iw
+        if h > frame_h * 0.85:  # very tall figure: shrink to fit on one page
+            h = frame_h * 0.85
+            w = h * iw / ih
+        parts = [RLImage(str(p), width=w, height=h)]
+        if blk.get("caption"):
+            parts += [Spacer(1, 4), Paragraph(_rl_markup(blk["caption"]), st["cap"])]
+        return KeepTogether(parts)
+
+    story = [Paragraph(_rl_markup(spec.get("title", "Paper summary")), ParagraphStyle(
+        "tb", parent=st["title"], fontName="MPE-Bold"))]
+    if spec.get("meta"):
+        story += [Spacer(1, 3), Paragraph(_rl_markup(spec["meta"]), st["meta"])]
+    story.append(Spacer(1, 10))
+    if spec.get("tldr"):
+        t = Table([[Paragraph("TL;DR", st["tldr_l"])], [Paragraph(_rl_markup(spec["tldr"]), st["tldr"])]],
+                  colWidths=[frame_w])
+        t.setStyle(TableStyle([("BACKGROUND", (0, 0), (-1, -1), C("#22221F")),
+                               ("LEFTPADDING", (0, 0), (-1, -1), 14), ("RIGHTPADDING", (0, 0), (-1, -1), 14),
+                               ("TOPPADDING", (0, 0), (-1, 0), 11), ("BOTTOMPADDING", (0, -1), (-1, -1), 12)]))
+        story += [t, Spacer(1, 10)]
+
+    blocks, i, k = spec.get("blocks", []), 0, 0
+    half_w = (frame_w - 10) / 2
+    while i < len(blocks):
+        blk = blocks[i]
+        if blk.get("type") == "figure":
+            f = figure(blk)
+            if f:
+                story += [f, Spacer(1, 10)]
+            i += 1
+            continue
+        nxt = blocks[i + 1] if i + 1 < len(blocks) else None
+        if blk.get("width") == "half" and nxt and nxt.get("type", "text") == "text" and nxt.get("width") == "half":
+            a = block(blk, ACCENTS[k % len(ACCENTS)], half_w)
+            b = block(nxt, ACCENTS[(k + 1) % len(ACCENTS)], half_w)
+            ha, hb = a.wrap(half_w, frame_h)[1], b.wrap(half_w, frame_h)[1]
+            if max(ha, hb) < frame_h * 0.9:
+                # rebuild the shorter card with extra bottom padding so both cards end together
+                a = block(blk, ACCENTS[k % len(ACCENTS)], half_w, max(0, hb - ha))
+                b = block(nxt, ACCENTS[(k + 1) % len(ACCENTS)], half_w, max(0, ha - hb))
+                pair = Table([[a, "", b]], colWidths=[half_w, 10, half_w])
+                pair.setStyle(TableStyle([("VALIGN", (0, 0), (-1, -1), "TOP"),
+                                          ("LEFTPADDING", (0, 0), (-1, -1), 0), ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+                                          ("TOPPADDING", (0, 0), (-1, -1), 0), ("BOTTOMPADDING", (0, 0), (-1, -1), 0)]))
+                story += [pair, Spacer(1, 10)]
+            else:  # too tall to sit side by side on one page: stack them
+                story += [block(blk, ACCENTS[k % len(ACCENTS)], frame_w), Spacer(1, 10),
+                          block(nxt, ACCENTS[(k + 1) % len(ACCENTS)], frame_w), Spacer(1, 10)]
+            i, k = i + 2, k + 2
+        else:
+            story += [block(blk, ACCENTS[k % len(ACCENTS)], frame_w), Spacer(1, 10)]
+            i, k = i + 1, k + 1
+
+    footer = spec.get("footer", "make-paper-easy")
+
+    def on_page(canvas, doc):
+        canvas.saveState()
+        canvas.setFont("MPE", 7.5)
+        canvas.setFillColor(C(MUTED))
+        canvas.drawString(margin, 0.42 * inch, normalize(footer)[:150])
+        canvas.drawRightString(size[0] - margin, 0.42 * inch, f"{doc.page}")
+        canvas.restoreState()
+
+    doc = SimpleDocTemplate(str(out_path), pagesize=size, leftMargin=margin, rightMargin=margin,
+                            topMargin=margin, bottomMargin=margin + 0.3 * inch,
+                            title=normalize(spec.get("title", "Paper summary")), author="make-paper-easy")
+    doc.build(story, onFirstPage=on_page, onLaterPages=on_page)
+    return doc.page
+
+
 def main() -> int:
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("summary")
     p.add_argument("--out", help="output path without extension")
     p.add_argument("--scale", type=float, default=1.5, help="PNG zoom (default 1.5)")
-    p.add_argument("--pdf", action="store_true", help="also write a PDF")
+    p.add_argument("--pdf", action="store_true", help="also write a paginated PDF with selectable text")
+    p.add_argument("--page", choices=["letter", "a4"], default="letter", help="PDF page size (default letter)")
     a = p.parse_args()
     sp = Path(a.summary)
     spec = json.loads(sp.read_text(encoding="utf-8"))
@@ -280,9 +438,17 @@ def main() -> int:
     png.write_bytes(bytes(resvg_py.svg_to_bytes(svg_string=svg, zoom=a.scale)))
     print(f"Wrote {png}")
     if a.pdf:
-        from PIL import Image
-        Image.open(png).convert("RGB").save(out.with_suffix(".pdf"), resolution=150)
-        print(f"Wrote {out.with_suffix('.pdf')}")
+        pdf = out.with_suffix(".pdf")
+        all_text = json.dumps(spec, ensure_ascii=False)
+        try:
+            if CJK_RE.search(all_text):
+                raise RuntimeError("CJK text: the bundled PDF font has no CJK glyphs")
+            pages = build_pdf(spec, sp.parent, pdf, a.page)
+            print(f"Wrote {pdf} ({pages} {a.page} page{'s' if pages != 1 else ''}, selectable text)")
+        except Exception as e:  # never lose the PDF: fall back to the sheet image as a single page
+            from PIL import Image
+            Image.open(png).convert("RGB").save(pdf, resolution=150)
+            print(f"Wrote {pdf} (image-only, because: {e})")
     return 0
 
 

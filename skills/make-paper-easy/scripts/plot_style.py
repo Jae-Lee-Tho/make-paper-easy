@@ -54,7 +54,9 @@ def bar_labels(ax, bars, fmt="{:.1f}", inside=False, size=8.5):
 
 def save(fig, path):
     """Save PNG (and an SVG twin) next to each other."""
-    fig.savefig(path)
+    fig.savefig(path, metadata={"Software": None})
     if path.lower().endswith(".png"):
-        fig.savefig(path[:-4] + ".svg")
+        # no date and a fixed id salt, so re-running gives a byte-identical SVG (clean git diffs)
+        with plt.rc_context({"svg.hashsalt": "make-paper-easy"}):
+            fig.savefig(path[:-4] + ".svg", metadata={"Date": None})
     plt.close(fig)

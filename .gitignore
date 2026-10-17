@@ -1,3 +1,6 @@
 __pycache__/
 *.pyc
 .DS_Store
+.pytest_cache/
+make-paper-easy/
+.venv/
