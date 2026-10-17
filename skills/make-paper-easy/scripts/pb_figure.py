@@ -1,4 +1,4 @@
-"""Optional PaperBanana backend for paper-explainer.
+"""Optional PaperBanana backend for make-paper-easy.
 
 Generates a publication-style figure with the `paperbanana` package
 (https://pypi.org/project/paperbanana, an unofficial MIT implementation of

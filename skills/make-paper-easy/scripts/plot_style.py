@@ -1,4 +1,4 @@
-"""Paper-style matplotlib theme for paper-explainer charts.
+"""Paper-style matplotlib theme for make-paper-easy charts.
 
 Import it, call apply(), then plot as usual. It sets fonts, a soft palette that
 matches compose_diagram.py, light gridlines, no top/right spines, and gives

@@ -1,9 +1,20 @@
 ---
-name: paper-explainer
-description: Turn a research paper (PDF upload, PDF link, or paper webpage like arXiv) into a Markdown file plus an undergrad-friendly summary with key points and visuals of its data.
+name: make-paper-easy
+description: Make a research paper easy to understand. Give it a paper link (arXiv, project or publisher page), a PDF link, or an attached PDF, and it returns the paper as Markdown, an undergrad-friendly summary with key points, a PaperBanana-style method diagram and results charts whose every label and number is exact. Use when the user runs /make-paper-easy, or asks to explain, summarize, simplify or visualize a paper.
 ---
 
-# Paper explainer
+# make-paper-easy
+
+## Usage
+
+```
+/make-paper-easy https://arxiv.org/abs/2610.22372
+/make-paper-easy /path/to/paper.pdf
+/make-paper-easy <link> in Korean          # write the summary in another language
+/make-paper-easy <link> no figures         # summary only
+```
+
+Anything after the link is a plain-language instruction (language, focus, figure count). With no instructions: English summary, one method diagram, one results chart. Reply in the user's language when they write in one.
 
 Input: one research paper as an attached PDF, a PDF URL, or a paper webpage (arXiv abs/html page, project page, publisher page).
 

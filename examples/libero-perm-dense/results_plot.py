@@ -8,7 +8,7 @@ from pathlib import Path
 import numpy as np
 import matplotlib.pyplot as plt
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "paper-explainer" / "scripts"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "skills" / "make-paper-easy" / "scripts"))
 from plot_style import apply, PALETTE, SOFT, HATCHES, INK, MUTED, bar_labels, save  # noqa: E402
 
 apply()

@@ -1,4 +1,6 @@
-# paper-explainer
+# make-paper-easy
+
+**Paper link in → paper you actually understand out.** Exact figures, real numbers, zero API keys.
 
 An [Agent Skill](https://docs.claude.com/en/docs/agents-and-tools/agent-skills/overview) that turns a research paper into something an undergraduate can actually follow.
 
@@ -15,17 +17,40 @@ Give it a PDF, a PDF link, or a paper webpage (e.g. arXiv), and it:
 
 ## Install
 
-### Claude Code
-Copy the skill folder into your skills directory:
+**Easiest:** paste this into Claude Code (or Codex / Cursor):
 
+```
+Please install the make-paper-easy skill from https://github.com/<your-username>/make-paper-easy
+```
+
+**Or with the skills CLI:**
 ```bash
-git clone https://github.com/<your-username>/paper-explainer-skill.git
-cp -r paper-explainer-skill/paper-explainer ~/.claude/skills/
+npx skills add <your-username>/make-paper-easy
+```
+
+**Or by hand (Claude Code):**
+```bash
+git clone https://github.com/<your-username>/make-paper-easy.git ~/make-paper-easy
+mkdir -p ~/.claude/skills
+ln -s ~/make-paper-easy/skills/make-paper-easy ~/.claude/skills/make-paper-easy
 pip install 'markitdown[pdf]' resvg-py pillow matplotlib
 ```
 
-### Claude.ai / Claude app
-Zip the `paper-explainer/` folder and upload it under **Settings → Capabilities → Skills**.
+**Claude.ai / Claude app:** zip the `skills/make-paper-easy/` folder and upload it under **Settings → Capabilities → Skills**.
+
+## Use
+
+```
+/make-paper-easy https://arxiv.org/abs/2610.22372
+/make-paper-easy ~/Downloads/paper.pdf
+/make-paper-easy <link> in Korean
+```
+
+You get:
+- `paper.md`: the full paper as clean Markdown.
+- A 5-minute summary: TL;DR, background terms explained, the problem, the method, key findings with real numbers, and limitations.
+- `figure.png` + `.svg`: a method diagram.
+- `results.png` + `.svg`: charts of the headline results.
 
 ### How figures are made (free)
 
@@ -49,10 +74,10 @@ Without Cloudflare credentials, diagrams use icons instead of thumbnails.
 
 To try the bundled examples:
 ```bash
-python paper-explainer/scripts/compose_diagram.py examples/libero-perm-dense/spec.json   # dense diagram
+python skills/make-paper-easy/scripts/compose_diagram.py examples/libero-perm-dense/spec.json   # dense diagram
 python examples/libero-perm-dense/results_plot.py                                         # results charts
-python paper-explainer/scripts/flux_art.py examples/libero-perm/spec.json                 # card figure art
-python paper-explainer/scripts/compose_figure.py examples/libero-perm/spec.json
+python skills/make-paper-easy/scripts/flux_art.py examples/libero-perm/spec.json                 # card figure art
+python skills/make-paper-easy/scripts/compose_figure.py examples/libero-perm/spec.json
 ```
 
 ### Optional: publication-style figures with PaperBanana
@@ -70,22 +95,14 @@ Then ask: "Explain this paper and use PaperBanana for the figures."
 A diagram costs roughly $0.40 at default settings, and each figure is capped at $1. Check before running with:
 
 ```bash
-python paper-explainer/scripts/pb_figure.py diagram method.txt "Overview of the method" fig.png --cost-only
+python skills/make-paper-easy/scripts/pb_figure.py diagram method.txt "Overview of the method" fig.png --cost-only
 ```
-
-## Use
-
-Just ask:
-
-> Explain this paper: https://arxiv.org/abs/2610.22372
-
-or attach a PDF and say "summarize this paper for me."
 
 ## Repo layout
 
 ```
-paper-explainer/
-├── SKILL.md            # instructions the agent follows
+skills/make-paper-easy/
+├── SKILL.md               # instructions the agent follows
 └── scripts/
     ├── convert.py         # PDF/URL → Markdown via MarkItDown
     ├── compose_diagram.py # spec.json → dense PaperBanana-style method diagram (SVG + PNG)
