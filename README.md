@@ -22,6 +22,24 @@ pip install 'markitdown[pdf]'
 ### Claude.ai / Claude app
 Zip the `paper-explainer/` folder and upload it under **Settings → Capabilities → Skills**.
 
+### Optional: publication-style figures with PaperBanana
+
+By default the agent draws diagrams and charts itself, with no API keys needed. For polished, paper-style figures, enable the [PaperBanana](https://github.com/dwzhu-pku/PaperBanana) backend:
+
+```bash
+pip install 'paperbanana[pdf]'
+export GOOGLE_API_KEY=...        # or OPENAI_API_KEY / OPENROUTER_API_KEY
+paperbanana doctor               # confirm it's ready
+```
+
+Then ask: "Explain this paper and use PaperBanana for the figures."
+
+A diagram costs roughly $0.40 at default settings, and each figure is capped at $1. Check before running with:
+
+```bash
+python paper-explainer/scripts/pb_figure.py diagram method.txt "Overview of the method" fig.png --cost-only
+```
+
 ## Use
 
 Just ask:
@@ -36,8 +54,14 @@ or attach a PDF and say "summarize this paper for me."
 paper-explainer/
 ├── SKILL.md            # instructions the agent follows
 └── scripts/
-    └── convert.py      # PDF/URL → Markdown via MarkItDown
+    ├── convert.py      # PDF/URL → Markdown via MarkItDown
+    └── pb_figure.py    # optional PaperBanana diagram/plot backend
 ```
+
+## Credits
+
+- [MarkItDown](https://github.com/microsoft/markitdown) (Microsoft, MIT) for PDF/HTML → Markdown.
+- [PaperBanana](https://github.com/dwzhu-pku/PaperBanana) (Zhu et al., arXiv:2601.23265, Apache-2.0) for the multi-agent figure method. This skill calls the [`paperbanana`](https://pypi.org/project/paperbanana) package, an unofficial MIT-licensed implementation by llmsresearch. Neither project's code is included here; both are installed separately.
 
 ## Notes
 

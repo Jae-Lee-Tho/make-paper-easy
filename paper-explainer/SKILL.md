@@ -72,8 +72,28 @@ Add visuals between summary sections, with prose around each. Pick only what gen
 - **Headline results chart**: a bar or line chart of the main table or scaling result, using exact values from the paper.
 - **Concept illustration**: when a prerequisite idea is spatial or mechanical (attention, a control loop, sensor fusion), an illustrative diagram.
 
-Use whatever visual tool the environment offers (inline SVG/chart tools, an HTML artifact, or a matplotlib PNG as a fallback).
 Skip a visual when a sentence or small table says it just as well. Only plot values printed in the paper's tables or text, never values guessed from a figure image.
+
+### Choose the figure backend
+
+**Built-in (default, no API key).** Draw figures yourself with whatever the environment offers: inline SVG/chart tools, an HTML artifact, or a matplotlib PNG. Use this unless PaperBanana mode applies.
+
+**PaperBanana (optional, publication-style figures).** Use it when the user asks for it ("use PaperBanana", "make it look like a paper figure") or has set it up. It needs `pip install 'paperbanana[pdf]'` and one of `GOOGLE_API_KEY`, `OPENAI_API_KEY`, `OPENROUTER_API_KEY` or `ATLASCLOUD_API_KEY`. Run `paperbanana doctor` to check.
+
+- Diagram: write the paper's method section to `method.txt`, then:
+  ```bash
+  python scripts/pb_figure.py diagram method.txt "<one-sentence caption of what the figure shows>" fig_method.png
+  ```
+- Plot: write the numbers from one results table to `results.csv` (copied exactly from the paper; one row per method/condition), then:
+  ```bash
+  python scripts/pb_figure.py plot results.csv "<what the chart should compare>" fig_results.png
+  ```
+
+Rules for PaperBanana mode:
+- It costs money (roughly $0.40 per diagram at default Gemini settings). Each call is capped at $1 by default (`--budget`). Before generating more than two figures, run with `--cost-only` and tell the user the estimate.
+- Exit code 3 means it isn't installed or no key is set. Say so in one line and fall back to built-in figures; don't stop the task.
+- Diagrams are AI-generated images. Check each one against the paper before sending it, and redo or drop any figure that shows wrong steps, labels or numbers.
+- Give the user the image files, and still write the explanation around each figure in the reply.
 
 ## Step 5 - Finish
 
