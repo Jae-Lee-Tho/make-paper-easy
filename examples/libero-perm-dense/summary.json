@@ -1,36 +1,36 @@
 {
   "title": "LIBERO-PeRM: Benchmarking Personalized Robotic Manipulation",
   "meta": "Li et al. · NeurIPS 2026 Datasets & Benchmarks · arxiv.org/abs/2610.22372",
-  "tldr": "로봇이 일을 **끝내는 것**과 **내가 원하는 방식으로** 끝내는 것은 다른 문제입니다. 이 논문은 둘을 따로 측정하는 벤치마크(5개 스위트, 312개 태스크, 40.8K 에피소드)를 만들었습니다. 그 결과, 최신 VLA 모델들은 태스크는 잘 끝내지만 사용자 선호는 대부분 무시했습니다. 파인튜닝하면 선호를 배우지만, 처음 보는 환경으로의 일반화와 여러 선호를 조합하는 일은 여전히 어렵습니다.",
+  "tldr": "Finishing a task and finishing it **the way you want** are two different problems. This paper builds a benchmark that measures them separately: 5 task suites, 312 tasks and 40.8K episodes. Today's VLA models complete the tasks but mostly ignore user preferences. Fine-tuning teaches the preferences, but generalizing to new scenes and combining several preferences are still hard.",
   "blocks": [
-    {"type": "text", "heading": "먼저 알아둘 용어", "width": "half", "bullets": [
-      "**VLA (Vision-Language-Action)**: 카메라 이미지와 문장 지시를 받아 로봇 동작을 바로 출력하는 모델.",
-      "**LIBERO**: 로봇 조작 학습용으로 널리 쓰이는 시뮬레이션 벤치마크. 이 논문은 그 위에 만들어졌습니다.",
-      "**SR (성공률)**: 태스크를 끝낸 비율. **SA (선호 만족도)**: 끝낸 에피소드 중 선호까지 지킨 정도.",
-      "**LoRA / SFT**: 큰 모델의 일부만 가볍게 추가 학습(파인튜닝)하는 방법."
+    {"type": "text", "heading": "Background you need", "width": "half", "bullets": [
+      "**VLA (Vision-Language-Action) model**: takes camera images and a text instruction, and outputs robot actions directly.",
+      "**LIBERO**: a widely used simulation benchmark for robot manipulation. This paper builds on top of it.",
+      "**SR (success rate)**: share of episodes where the task is done. **SA (preference satisfaction)**: how well the preference was followed, counted only when the task succeeds.",
+      "**LoRA / SFT**: lightweight fine-tuning that trains a small part of a big model."
     ]},
-    {"type": "text", "heading": "풀려는 문제", "width": "half", "text": "\"머그컵을 테이블에 놔줘\"라는 같은 명령이라도, 어떤 사람은 손잡이를 바깥쪽으로, 어떤 사람은 코스터 위에 놓길 원합니다. 기존 벤치마크는 **태스크 성공만** 채점해서, 로봇이 이런 개인 선호를 따르는지 측정할 방법이 없었습니다. 연구마다 '개인화'의 정의와 평가 방식도 제각각이었습니다."},
-    {"type": "text", "heading": "논문이 한 일", "bullets": [
-      "**선호를 3종류로 정리**: 동작(Motion, 예: 천천히·특정 물체 피하기), 기술(Skill, 예: 손잡이로 집기), 사용자 프로필(User Profile, 예: 유제품 선호). 총 37개 단일 선호 + 18개 조합.",
-      "**자동 데이터 생성 파이프라인**: VLM이 장면을 최소한으로 수정하고, 선호가 있는/없는 계획을 쌍으로 만든 뒤, 기술 라이브러리와 OMPL 플래너로 시연을 생성합니다.",
-      "**선호마다 자동 채점기**: 궤적 계산(동작), 웨이포인트+VLM 이미지 검사(기술), 실행된 하위 태스크 확인(프로필)."
+    {"type": "text", "heading": "The problem", "width": "half", "text": "The same command, \"put the mug on the table\", can mean handle facing out for one person and on a coaster for another. Existing benchmarks only score **task success**, so there was no way to measure whether a robot follows personal preferences. Prior work also defined and evaluated \"personalization\" in incompatible ways."},
+    {"type": "text", "heading": "What they did", "bullets": [
+      "**A preference taxonomy with 3 types**: Motion (e.g. slow down, avoid an object), Skill (e.g. pick by the handle) and User profile (e.g. prefers dairy). That gives 37 single preferences plus 18 combinations.",
+      "**An automatic data pipeline**: a VLM minimally edits the scene, writes paired plans with and without the preference, and a heuristic skill library plus the OMPL planner generates the demos.",
+      "**An automatic scorer per preference type**: trajectory math (Motion), waypoints plus a VLM image check (Skill), and the executed subtasks (User profile)."
     ]},
-    {"type": "figure", "path": "figure.png", "caption": "그림 1. 데이터 생성 파이프라인. 입력 → ① 선호 선택·레이아웃 수정(시뮬레이션 검증 실패 시 재시도) → ② 선호 조건부 생성 → ③ 선호별 만족도 지표 → 출력."},
-    {"type": "text", "heading": "핵심 결과", "bullets": [
-      "**제로샷은 실패**: π0.5는 동작·기술 선호 태스크를 97.5%·100% 성공했지만, 선호 만족도는 24.38%·25.00%뿐이었습니다. 일은 끝내고 선호는 무시한 것입니다.",
-      "**파인튜닝하면 학습됨**: 선호 데이터로 LoRA 학습 시 All-Pref SA가 82.48%까지 올라갑니다.",
-      "**섞어서 학습하는 게 낫지만 대가가 있음**: Mix-LoRA는 선호 없는 태스크 성공률 91.00%를 유지했습니다(순차 학습은 52.33%). 다만 동작 선호 SR이 90.00% → 66.88%로 떨어졌습니다.",
-      "**데이터는 양보다 다양성**: 같은 시연 수라면 레이아웃 종류를 늘리는 게 더 효과적이었습니다.",
-      "**조합·충돌은 아직 어려움**: 두 선호 조합 25.0%, 조합에서 하나만 분리하기는 SA 0.0%였습니다."
+    {"type": "figure", "path": "figure.png", "caption": "Figure 1. Data generation pipeline. Inputs → (1) preference selection and layout edit, retried until it passes simulation → (2) preference-conditioned generation → (3) per-type satisfaction metrics → outputs."},
+    {"type": "text", "heading": "Key findings", "bullets": [
+      "**Zero-shot fails**: π0.5 completed Motion and Skill tasks 97.50% and 100.00% of the time, but satisfied the preference only 24.38% and 25.00% of the time. It does the job and ignores the preference.",
+      "**Fine-tuning makes preferences learnable**: LoRA on the preference data raises All-Pref SA to 82.48%.",
+      "**Mixed training helps, at a cost**: Mix-LoRA keeps 91.00% no-preference SR, versus 52.33% for sequential training, but Motion SR drops from 90.00% to 66.88%.",
+      "**Diversity beats volume**: at the same number of demos, more distinct layouts helped more than more demos per layout.",
+      "**Combining preferences is still hard**: composing two preferences reaches 25.0%, and pulling one preference back out of a combination gets 0.0% SA."
     ]},
-    {"type": "figure", "path": "results.png", "caption": "그림 2. (a) 제로샷: 태스크 성공(SR) 대비 선호 만족(SA)이 크게 낮음. (b) 파인튜닝된 π0.5: LoRA vs Mix-LoRA의 선호 만족도 차이. (c) 37개 선호의 유형별 구성."},
-    {"type": "text", "heading": "한계", "width": "half", "bullets": [
-      "시뮬레이션만 사용했고, 실제 로봇 실험은 없습니다.",
-      "말로 표현할 수 있고 자동 측정 가능한 선호만 다룹니다. 상호작용 이력에서 선호를 추론하는 경우는 제외됩니다.",
-      "조합은 최대 2개 선호이며, 충돌을 감지하거나 사용자에게 되묻는 능력은 평가하지 않습니다.",
-      "사람 평가는 15명 설문뿐입니다."
+    {"type": "figure", "path": "results.png", "caption": "Figure 2. (a) Zero-shot: preference satisfaction (SA) is far below task success (SR). (b) Fine-tuned π0.5: SA for LoRA vs Mix-LoRA. (c) The 37 preferences by type."},
+    {"type": "text", "heading": "Limitations", "width": "half", "bullets": [
+      "Simulation only, with no real-robot experiments.",
+      "Only preferences that can be stated in words and measured automatically. Inferring preferences from interaction history is out of scope.",
+      "Combinations stop at 2 preferences, and the benchmark doesn't test detecting conflicts or asking the user.",
+      "Human validation is a 15-person survey."
     ]},
-    {"type": "text", "heading": "왜 중요한가", "width": "half", "text": "가정용 로봇이 실제로 쓰이려면 \"일을 했다\"를 넘어 \"**내 방식대로** 했다\"가 필요합니다. 이 벤치마크는 태스크 성공과 선호 만족을 분리해 측정하는 공통 기준을 제공해서, 앞으로의 VLA 연구가 개인화를 비교·개선할 수 있게 만듭니다."}
+    {"type": "text", "heading": "Why it matters", "width": "half", "text": "Home robots need to go beyond \"did the task\" to \"did it **my way**\". This benchmark separates task success from preference satisfaction and gives VLA research a common yardstick for comparing and improving personalization."}
   ],
-  "footer": "make-paper-easy · 모든 수치는 논문 원문(표 2·3, 3.1절, 4.2절)에서 가져왔습니다"
+  "footer": "make-paper-easy · every number is from the paper (Tables 2-3, Sec. 3.1, Sec. 4.2)"
 }

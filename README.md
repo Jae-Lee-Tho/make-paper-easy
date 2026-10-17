@@ -43,7 +43,7 @@ pip install 'markitdown[pdf]' resvg-py pillow matplotlib
 ```
 /make-paper-easy https://arxiv.org/abs/2610.22372
 /make-paper-easy ~/Downloads/paper.pdf
-/make-paper-easy <link> in Korean
+/make-paper-easy <link> in Spanish   # English by default
 ```
 
 You get **one study sheet**, `make-paper-easy/<paper>/<paper>-easy.png` (plus a PDF), with everything in reading order:
@@ -51,7 +51,7 @@ TL;DR → background terms → the problem → what they did → method diagram 
 
 The parts are saved next to it, in case you want them: `paper.md` (the full paper), `summary.json`, and `figure`/`results` as both PNG and editable SVG.
 
-<p align="center"><img src="examples/libero-perm-dense/libero-perm-easy.png" width="520" alt="Example study sheet (Korean)"/></p>
+<p align="center"><img src="examples/libero-perm-dense/libero-perm-easy.png" width="520" alt="Example study sheet"/></p>
 
 ### How figures are made (free)
 

@@ -10,11 +10,11 @@ description: Make a research paper easy to understand. Give it a paper link (arX
 ```
 /make-paper-easy https://arxiv.org/abs/2610.22372
 /make-paper-easy /path/to/paper.pdf
-/make-paper-easy <link> in Korean          # write the summary in another language
+/make-paper-easy <link> in Spanish         # only if you want a language other than English
 /make-paper-easy <link> no figures         # summary only
 ```
 
-Anything after the link is a plain-language instruction (language, focus, figure count). With no instructions: English summary, one method diagram, one results chart. Reply in the user's language when they write in one.
+Anything after the link is a plain-language instruction (language, focus, figure count). With no instructions: English summary, one method diagram, one results chart. Always write in English, even if the user chats in another language, unless the command explicitly names a different language.
 
 Input: one research paper as an attached PDF, a PDF URL, or a paper webpage (arXiv abs/html page, project page, publisher page).
 
@@ -64,7 +64,7 @@ Read the whole Markdown. Note:
 
 ## Step 3 - Write the summary into `summary.json`
 
-Write the summary as `make-paper-easy/<slug>/summary.json`, not as chat text (format in `scripts/make_sheet.py`'s docstring; full example: `examples/libero-perm-dense/summary.json`). Audience: an undergraduate ECE/CS student who knows calculus, linear algebra, basic probability and programming, but not this subfield's jargon. Write in the user's language (Korean, Chinese and Japanese render fine).
+Write the summary as `make-paper-easy/<slug>/summary.json`, not as chat text (format in `scripts/make_sheet.py`'s docstring; full example: `examples/libero-perm-dense/summary.json`). Audience: an undergraduate ECE/CS student who knows calculus, linear algebra, basic probability and programming, but not this subfield's jargon. Write in English unless the command explicitly asks for another language (CJK scripts render fine if asked).
 
 Structure (each item maps to a field or block in `summary.json`):
 1. **TL;DR** (`tldr`) - one paragraph: what they did and the single most important finding, in plain words.
