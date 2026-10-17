@@ -33,10 +33,10 @@ DEFAULT_STYLE = (
 )
 
 
-def generate(prompt: str, seed: int, steps: int) -> bytes:
+def generate(prompt: str, steps: int) -> bytes:
     acct, token = os.environ["CF_ACCOUNT_ID"], os.environ["CF_API_TOKEN"]
     url = f"https://api.cloudflare.com/client/v4/accounts/{acct}/ai/run/{MODEL}"
-    body = json.dumps({"prompt": prompt[:2048], "steps": steps, "seed": seed}).encode()
+    body = json.dumps({"prompt": prompt[:2048], "steps": steps}).encode()  # this model rejects "seed"
     req = urllib.request.Request(url, data=body, headers={
         "Authorization": f"Bearer {token}", "Content-Type": "application/json"})
     try:
@@ -64,7 +64,6 @@ def main() -> int:
     spec_path = Path(a.spec)
     spec = json.loads(spec_path.read_text())
     style = spec.get("style", DEFAULT_STYLE)
-    seed = int(spec.get("seed", 42))
     art_dir = spec_path.parent / spec.get("art_dir", "art")
     art_dir.mkdir(parents=True, exist_ok=True)
 
@@ -78,7 +77,7 @@ def main() -> int:
             continue
         prompt = f"{panel['art']}, {style}"
         try:
-            out.write_bytes(generate(prompt, seed + i, min(a.steps, 8)))
+            out.write_bytes(generate(prompt, min(a.steps, 8)))
             print(f"made   {out.name}")
             made += 1
         except Exception as e:  # keep going so one bad panel doesn't block the figure

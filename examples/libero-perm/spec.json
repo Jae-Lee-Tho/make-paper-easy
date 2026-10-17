@@ -3,7 +3,6 @@
   "caption": "A preference changes how a task is done, not what is done. Each step is checked automatically, giving task success (SR) and preference satisfaction (SA).",
   "layout": "row",
   "arrows": true,
-  "seed": 7,
   "art_dir": "art",
   "panels": [
     {
