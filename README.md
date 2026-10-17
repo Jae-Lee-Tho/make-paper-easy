@@ -20,17 +20,17 @@ Give it a PDF, a PDF link, or a paper webpage (e.g. arXiv), and it:
 **Easiest:** paste this into Claude Code (or Codex / Cursor):
 
 ```
-Please install the make-paper-easy skill from https://github.com/<your-username>/make-paper-easy
+Please install the make-paper-easy skill from https://github.com/Jae-Lee-Tho/make-paper-easy
 ```
 
 **Or with the skills CLI:**
 ```bash
-npx skills add <your-username>/make-paper-easy
+npx skills add Jae-Lee-Tho/make-paper-easy
 ```
 
 **Or by hand (Claude Code):**
 ```bash
-git clone https://github.com/<your-username>/make-paper-easy.git ~/make-paper-easy
+git clone https://github.com/Jae-Lee-Tho/make-paper-easy.git ~/make-paper-easy
 mkdir -p ~/.claude/skills
 ln -s ~/make-paper-easy/skills/make-paper-easy ~/.claude/skills/make-paper-easy
 pip install -r ~/make-paper-easy/requirements.txt
