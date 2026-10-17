@@ -51,7 +51,11 @@ TL;DR → background terms → the problem → what they did → method diagram 
 
 The parts are saved next to it, in case you want them: `paper.md` (the full paper), `summary.json`, and `figure`/`results` as both PNG and editable SVG.
 
-<p align="center"><img src="examples/libero-perm-dense/libero-perm-easy.png" width="520" alt="Example study sheet"/></p>
+<p align="center">
+  <img src="examples/transformer/attention-is-all-you-need-easy.png" width="420" alt="Study sheet for Attention Is All You Need"/>
+  <img src="examples/libero-perm-dense/libero-perm-easy.png" width="420" alt="Study sheet for LIBERO-PeRM"/>
+</p>
+<p align="center"><sub>Study sheets generated for <a href="https://arxiv.org/abs/1706.03762">Attention Is All You Need</a> and <a href="https://arxiv.org/abs/2610.22372">LIBERO-PeRM</a>, with every label and number taken from the paper.</sub></p>
 
 ### How figures are made (free)
 
@@ -114,6 +118,7 @@ skills/make-paper-easy/
     ├── gemini_prompt.py   # spec.json → prompt for the free Gemini app
     └── pb_figure.py       # optional paid PaperBanana backend
 examples/
+├── transformer/           # Attention Is All You Need: sheet, diagram, charts
 ├── libero-perm-dense/     # dense diagram spec + results chart script (LIBERO-PeRM, arXiv 2610.22372)
 └── libero-perm/           # simple card figure spec
 ```

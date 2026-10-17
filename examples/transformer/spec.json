@@ -1,0 +1,232 @@
+{
+  "title": "The Transformer: attention only, no recurrence",
+  "caption": "Data flows bottom to top inside each stack, as in the paper's Figure 1. Every sublayer is wrapped in a residual connection followed by layer normalization (Add & Norm). The decoder's middle block takes its queries from the decoder and its keys and values from the encoder output.",
+  "node_w": 168,
+  "groups": [
+    {
+      "id": "inputs",
+      "title": "Inputs",
+      "style": "plain",
+      "color": "gray",
+      "cols": 1,
+      "rows": 3,
+      "nodes": [
+        {
+          "id": "pe",
+          "row": 0,
+          "title": "Positional encoding",
+          "math": "PE_{(pos,2i)} = sin(·)",
+          "sub": "sin / cos waves, added",
+          "icon": "path"
+        },
+        {
+          "id": "emb",
+          "row": 1,
+          "title": "Input embedding",
+          "math": "d_{model} = 512",
+          "sub": "one vector per token",
+          "icon": "matrix"
+        },
+        {
+          "id": "src",
+          "row": 2,
+          "title": "Source sentence",
+          "sub": "e.g. English (WMT 2014)",
+          "icon": "chat"
+        }
+      ]
+    },
+    {
+      "id": "enc",
+      "title": "Encoder (N = 6 layers)",
+      "color": "sky",
+      "cols": 1,
+      "rows": 3,
+      "nodes": [
+        {
+          "id": "mem",
+          "row": 0,
+          "title": "Encoder output",
+          "sub": "keys and values for decoder",
+          "icon": "db"
+        },
+        {
+          "id": "effn",
+          "row": 1,
+          "title": "Feed-forward",
+          "math": "max(0, xW_{1}+b_{1})W_{2}+b_{2}",
+          "sub": "d_ff = 2048",
+          "icon": "gear"
+        },
+        {
+          "id": "emha",
+          "row": 2,
+          "title": "Multi-head self-attention",
+          "sub": "h = 8 heads, d_k = 64",
+          "icon": "vlm"
+        }
+      ]
+    },
+    {
+      "id": "dec",
+      "title": "Decoder (N = 6 layers)",
+      "color": "lavender",
+      "cols": 2,
+      "rows": 3,
+      "nodes": [
+        {
+          "id": "tgt",
+          "row": 2,
+          "col": 0,
+          "title": "Outputs, shifted right",
+          "sub": "previous tokens, embedded",
+          "icon": "chat"
+        },
+        {
+          "id": "dmask",
+          "row": 2,
+          "col": 1,
+          "title": "Masked self-attention",
+          "sub": "can't see future tokens",
+          "icon": "vlm"
+        },
+        {
+          "id": "dcross",
+          "row": 1,
+          "col": 1,
+          "title": "Encoder-decoder attention",
+          "sub": "Q: decoder · K, V: encoder",
+          "icon": "layers"
+        },
+        {
+          "id": "dffn",
+          "row": 0,
+          "col": 1,
+          "title": "Feed-forward",
+          "sub": "same as encoder",
+          "icon": "gear"
+        }
+      ]
+    },
+    {
+      "id": "head",
+      "title": "Output",
+      "color": "mint",
+      "cols": 1,
+      "rows": 3,
+      "nodes": [
+        {
+          "id": "lin",
+          "row": 0,
+          "title": "Linear + softmax",
+          "sub": "scores over vocabulary",
+          "icon": "chart"
+        },
+        {
+          "id": "prob",
+          "row": 1,
+          "title": "Next-token probabilities",
+          "sub": "e.g. German translation",
+          "icon": "metric"
+        }
+      ]
+    },
+    {
+      "id": "core",
+      "title": "Inside every attention block",
+      "color": "peach",
+      "cols": 1,
+      "rows": 3,
+      "nodes": [
+        {
+          "id": "sdpa",
+          "row": 0,
+          "title": "Scaled dot-product",
+          "math": "softmax(QK^{T}/√d_{k}) V",
+          "sub": "Eq. 1",
+          "icon": "matrix"
+        },
+        {
+          "id": "mh",
+          "row": 1,
+          "title": "Multi-head",
+          "sub": "h parallel attentions, concatenated",
+          "icon": "layers"
+        },
+        {
+          "id": "path",
+          "row": 2,
+          "title": "Why it's fast",
+          "sub": "O(1) path vs O(n) for an RNN",
+          "icon": "loop"
+        }
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "from": "src",
+      "to": "emb"
+    },
+    {
+      "from": "pe",
+      "to": "emha"
+    },
+    {
+      "from": "emb",
+      "to": "emha"
+    },
+    {
+      "from": "emha",
+      "to": "effn"
+    },
+    {
+      "from": "effn",
+      "to": "mem",
+      "label": "× 6"
+    },
+    {
+      "from": "mem",
+      "to": "dcross",
+      "label": "K, V",
+      "color": "accent"
+    },
+    {
+      "from": "tgt",
+      "to": "dmask"
+    },
+    {
+      "from": "dmask",
+      "to": "dcross",
+      "label": "Q"
+    },
+    {
+      "from": "dcross",
+      "to": "dffn"
+    },
+    {
+      "from": "dffn",
+      "to": "lin",
+      "label": "× 6"
+    },
+    {
+      "from": "lin",
+      "to": "prob"
+    },
+    {
+      "from": "sdpa",
+      "to": "mh"
+    }
+  ],
+  "legend": [
+    {
+      "label": "data flow",
+      "style": "solid"
+    },
+    {
+      "label": "encoder keys and values into the decoder",
+      "style": "solid",
+      "color": "accent"
+    }
+  ]
+}

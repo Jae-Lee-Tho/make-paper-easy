@@ -21,7 +21,7 @@ summary.json:
   "footer": "Made with make-paper-easy · every number is from the paper"
 }
 - "width": "half" blocks pair up side by side; anything else is full width.
-- **bold** works in text and bullets. Korean/Chinese/Japanese text works.
+- **bold** works in text and bullets, and so do x^{2} / d_{k} super/subscripts. CJK text works.
 - Figure paths are relative to summary.json.
 
 Requires: pip install resvg-py pillow
@@ -83,7 +83,7 @@ def wrap_runs(text, size, max_w):
             tokens.append((m.group(0), b))
     lines, cur, cur_w = [], [], 0.0
     for piece, b in tokens:
-        w = sum(char_w(c, size, b) for c in piece)
+        w = sum(char_w(c, size, b) for c in SCRIPT.sub(r"\2", piece))
         if cur and cur_w + w - (char_w(" ", size, b) if piece.endswith(" ") else 0) > max_w:
             lines.append(cur)
             cur, cur_w = [], 0.0
@@ -97,15 +97,54 @@ def wrap_runs(text, size, max_w):
     return lines
 
 
+# Modifier letters that most UI fonts lack; one missing glyph can switch a whole run to a fallback
+# font (often bold italic), so turn them into ^{..}/_{..} markup that renders with normal letters.
+SUPER = dict(zip("⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻⁼⁽⁾ⁱⁿᵀᵃᵇᶜᵈᵉᶠᵍʰʲᵏˡᵐᵒᵖʳˢᵗᵘᵛʷˣʸᶻ",
+                 "0123456789+-=()inTabcdefghjklmoprstuvwxyz"))
+SUB = dict(zip("₀₁₂₃₄₅₆₇₈₉₊₋₌₍₎ₐₑₒₓₕₖₗₘₙₚₛₜᵢⱼ", "0123456789+-=()aeoxhklmnpstij"))
+SCRIPT = re.compile(r"([_^])\{([^}]*)\}")
+
+
+def normalize(text):
+    """Turn runs of Unicode super/subscript characters (10¹⁸, QKᵀ, x₁) into ^{..}/_{..} markup."""
+    out, i = [], 0
+    while i < len(text):
+        for table, mark in ((SUPER, "^"), (SUB, "_")):
+            if text[i] in table:
+                j = i
+                while j < len(text) and text[j] in table:
+                    j += 1
+                out.append(mark + "{" + "".join(table[c] for c in text[i:j]) + "}")
+                i = j
+                break
+        else:
+            out.append(text[i])
+            i += 1
+    return "".join(out)
+
+
+def piece_svg(piece, weight, size):
+    """Escape a text piece, turning ^{..} and _{..} into super/subscript tspans."""
+    out, pos = [], 0
+    small = round(size * 0.7, 1)
+    for m in SCRIPT.finditer(piece):
+        out.append(f'<tspan font-weight="{weight}">{esc(piece[pos:m.start()])}</tspan>')
+        shift = "super" if m.group(1) == "^" else "sub"
+        out.append(f'<tspan font-weight="{weight}" baseline-shift="{shift}" font-size="{small}">{esc(m.group(2))}</tspan>')
+        pos = m.end()
+    out.append(f'<tspan font-weight="{weight}">{esc(piece[pos:])}</tspan>')
+    return "".join(out)
+
+
 def line_svg(x, y, line, size, fill, base_bold=False):
-    spans = "".join(f'<tspan font-weight="{"bold" if (b or base_bold) else "normal"}">{esc(p)}</tspan>' for p, b in line)
+    spans = "".join(piece_svg(p, "bold" if (b or base_bold) else "normal", size) for p, b in line)
     return f'<text x="{x:.1f}" y="{y:.1f}" font-family="{FONT}" font-size="{size}" fill="{fill}" xml:space="preserve">{spans}</text>'
 
 
 def paragraph(x, y, text, size, width, fill, leading=1.5, bold=False):
     """Returns (svg, height)."""
     out, lh = [], size * leading
-    lines = wrap_runs(text, size, width)
+    lines = wrap_runs(normalize(str(text)), size, width)
     for i, ln in enumerate(lines):
         out.append(line_svg(x, y + size + i * lh, ln, size, fill, bold))
     return "\n".join(out), len(lines) * lh

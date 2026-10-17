@@ -59,6 +59,7 @@ INK, MUTED = "#2C2C2A", "#6B6A64"
 EDGE = {"gray": "#8E8C84", "accent": "#D9643A"}
 
 GPAD, NGAP, HEADER, GGAP, PAD = 14, 14, 34, 58, 36
+WARNINGS = []  # text that did not fit; printed after rendering so nothing is lost silently
 
 
 # ---------- text helpers ----------
@@ -262,15 +263,25 @@ def draw_node(n, art_dir, with_art):
         out.append(f'<rect x="{x + w / 2 - 26}" y="{y + 8}" width="52" height="{vis_h - 4}" rx="10" fill="{c[0]}"/>')
         out.append(icon(n.get("icon", "layers"), x + w / 2 - 18, y + 13, c))
     ty = y + vis_h + 24
-    tl = wrap(n.get("title", ""), 18)[:2]
+    title_chars, sub_chars = int((w - 12) / 8.0), int((w - 12) / 6.0)  # wrap to the node's real width
+    tl = wrap(n.get("title", ""), title_chars)
+    if len(tl) > 2:
+        WARNINGS.append(f'node "{n["id"]}": title needs {len(tl)} lines, only 2 fit; shorten it')
+        tl = tl[:2]
     for i, line in enumerate(tl):
         out.append(text_el(x + w / 2, ty + i * 15, line, 12.5, ink, "bold"))
     yy = ty + len(tl) * 15
     if n.get("math"):
+        if plain_len(n["math"]) * 6.6 > w - 10:
+            WARNINGS.append(f'node "{n["id"]}": math "{n["math"]}" may be wider than the node')
         out.append(text_el(x + w / 2, yy + 2, n["math"], 13, INK, family=SERIF, italic=True))
         yy += 16
-    room = 1 if (len(tl) == 2 or n.get("math")) else 2
-    for i, line in enumerate(wrap(n.get("sub", ""), 24)[:room]):
+    sub = wrap(n.get("sub", ""), sub_chars)
+    room = max(0, int((y + h - 8 - yy) / 13.5) + 1)  # sub lines whose baseline stays inside the node
+    if len(sub) > room:
+        WARNINGS.append(f'node "{n["id"]}": subtitle "{n.get("sub")}" needs {len(sub)} line(s), {room} fit; shorten it')
+        sub = sub[:room]
+    for i, line in enumerate(sub):
         out.append(text_el(x + w / 2, yy + i * 13.5, line, 10.5, MUTED))
     return "\n".join(out)
 
@@ -400,7 +411,9 @@ def main() -> int:
         return 0
     out.with_suffix(".png").write_bytes(bytes(resvg_py.svg_to_bytes(svg_string=svg, zoom=a.scale)))
     print(f"Wrote {out.with_suffix('.png')}")
-    return 0
+    for w_ in WARNINGS:
+        print("WARNING:", w_, file=sys.stderr)
+    return 3 if WARNINGS else 0  # 3 = rendered, but some text was cut: fix the spec and re-render
 
 
 if __name__ == "__main__":

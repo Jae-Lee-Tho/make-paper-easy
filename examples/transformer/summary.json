@@ -1,0 +1,73 @@
+{
+  "title": "Attention Is All You Need",
+  "meta": "Vaswani et al. · Google Brain / Google Research · NIPS 2017 · arxiv.org/abs/1706.03762",
+  "tldr": "Before 2017, translation models read a sentence **one word at a time** (RNNs), which is slow and makes far-apart words hard to connect. The Transformer throws out recurrence and uses **only attention**: every word looks at every other word at once. It set new records on English→German (28.4 BLEU) and English→French (41.8 BLEU) while costing less to train than earlier models.",
+  "blocks": [
+    {
+      "type": "text",
+      "heading": "Background you need",
+      "width": "half",
+      "bullets": [
+        "**Sequence transduction**: turning one sequence into another, like a sentence in English into German.",
+        "**RNN (recurrent network)**: reads tokens in order, carrying a memory forward, like reading with your finger on the page. It can't be parallelized across positions.",
+        "**Attention**: a weighted look-up. Each word asks a question (**query**), every word offers a label (**key**) and content (**value**), and the answer is a weighted mix of values.",
+        "**BLEU**: a 0-100 score of how close a translation is to human references. Higher is better."
+      ]
+    },
+    {
+      "type": "text",
+      "heading": "The problem",
+      "width": "half",
+      "text": "Recurrent models process positions one after another, so training can't use the GPU's parallelism within a sentence, and a signal between the first and last word has to pass through every step in between. Earlier models used attention as an add-on to an RNN. The question here: **can attention alone do the whole job?**"
+    },
+    {
+      "type": "text",
+      "heading": "What they did",
+      "bullets": [
+        "**Encoder-decoder built only from attention and feed-forward layers**: 6 encoder layers and 6 decoder layers, each sublayer wrapped in a residual connection and layer normalization.",
+        "**Scaled dot-product attention**: Attention(Q, K, V) = softmax(QKᵀ / √d_k) V. Dividing by √d_k keeps the scores from growing too large.",
+        "**Multi-head attention**: 8 heads attend in parallel, each with 64-dimensional keys and values, so the model can look for different kinds of relationships at once.",
+        "**Positional encoding**: with no recurrence, word order is added back as sine and cosine waves of different frequencies.",
+        "**Base model sizes**: d_model = 512, feed-forward d_ff = 2048, dropout 0.1, label smoothing 0.1."
+      ]
+    },
+    {
+      "type": "figure",
+      "path": "figure.png",
+      "caption": "Figure 1. The Transformer architecture, drawn from the paper's Figure 1 and Section 3. The decoder's encoder-decoder attention takes queries (Q) from the decoder and keys and values (K, V) from the encoder output."
+    },
+    {
+      "type": "text",
+      "heading": "Key findings",
+      "bullets": [
+        "**New state of the art, English→German**: the big Transformer scores 28.4 BLEU, more than 2.0 BLEU above the best previous models, including ensembles.",
+        "**English→French**: 41.8 BLEU for a single big model, above every model and ensemble in Table 2.",
+        "**Cheaper to train**: the base model costs 3.3·10¹⁸ FLOPs, the lowest in Table 2, and still beats every earlier English→German result with 27.3 BLEU.",
+        "**Fast**: the base model trains in about 12 hours and the big model in 3.5 days, on one machine with 8 NVIDIA P100 GPUs.",
+        "**Why attention helps (Table 1)**: any two positions are connected in O(1) steps, versus O(n) for a recurrent layer, with O(1) sequential operations, so a whole sentence is processed in parallel."
+      ]
+    },
+    {
+      "type": "figure",
+      "path": "results.png",
+      "caption": "Figure 2. Table 2 of the paper on newstest2014. (a) English→German BLEU. (b) English→German BLEU against training cost. Both Transformers sit above every earlier model at equal or lower cost. (c) English→French BLEU."
+    },
+    {
+      "type": "text",
+      "heading": "Limitations",
+      "width": "half",
+      "bullets": [
+        "Self-attention costs O(n²·d) per layer, which grows quickly for very long sequences. Section 4 suggests restricting attention to a local neighborhood, which the authors leave to future work.",
+        "Evaluated on machine translation and English constituency parsing only.",
+        "The base model is behind earlier ensembles on English→French (38.1 vs 41.29 BLEU). Only the big model leads there."
+      ]
+    },
+    {
+      "type": "text",
+      "heading": "Why it matters",
+      "width": "half",
+      "text": "This paper introduced the architecture behind nearly every modern language model. Replacing step-by-step recurrence with **parallel attention** made training on huge datasets practical, which is the foundation of today's large language models and of vision-language-action models in robotics."
+    }
+  ],
+  "footer": "make-paper-easy · every number is from the paper (Tables 1-2, Sections 3, 5 and 6)"
+}
