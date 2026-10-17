@@ -78,12 +78,51 @@ Skip a visual when a sentence or small table says it just as well. Only plot val
 
 Go through these in order for each figure:
 
-1. **Chart of numbers?** Always draw it in code (matplotlib, or the environment's chart tool) from values copied from the paper. Never send numbers through an image model.
-2. **Diagram, soft illustrated look (default for diagrams): hybrid mode.** Claude writes all text and layout as SVG; FLUX draws only text-free art pieces. See below. If no Cloudflare credentials are set, the same script renders soft-SVG cards without art.
+1. **Chart of numbers?** Always draw it in code from values copied from the paper; never send numbers through an image model. Use the paper-style theme (below).
+2. **Method / pipeline / architecture diagram (default): dense mode, `compose_diagram.py`.** PaperBanana-style: tinted modules, many small nodes with icons, math labels, branching and feedback arrows. See "Dense diagrams". FLUX thumbnails are optional.
+2b. **Simple 3-5 step overview for a beginner:** card mode, `compose_figure.py` with large FLUX art (see "Hybrid mode").
 3. **PaperBanana**, only when the user asks for it and has a key. See the end of this section.
 4. **No image model at all and the user wants painted art:** also give them `gemini_prompt.py`'s output to paste into the free Gemini app.
 
-### Hybrid mode: exact SVG text + FLUX art
+### Dense diagrams (PaperBanana-style)
+
+Write `figures/<name>/spec.json` in the `compose_diagram.py` format (docstring; worked example: `examples/libero-perm-dense/spec.json`, which recreates the paper's Figure 3).
+
+Plan it like the paper's own figure, not like a summary:
+- **Modules = groups.** One group per stage or component the paper names (e.g. "Lens module", "Reasoning module"), left to right in data-flow order. Use `"style": "plain"` for an Inputs column and an Outputs group at the ends. Usually 3-5 groups.
+- **Nodes = the real parts.** 2-6 nodes per group, placed on the group's `rows` x `cols` grid. Typically 12-20 nodes in total. Each has a 1-4 word `title`, a short `sub` (≤ 24 characters reads best), and an `icon` that fits: vlm, robot, doc, db, plan, gear, chart, check, user, matrix, image, loop, chat, path, metric, layers, scene.
+- **Math where the paper has it.** Put the paper's own symbols in `math`: `π_{θ}(a_t | I_t)`, `ℒ_{KL}`, `𝒢`, `d ∈ {0, ¼, ¾, 1}`. Don't invent notation.
+- **Edges carry the logic.** List every real data flow. Use `"style": "dashed", "color": "accent"` with a short `label` for feedback or refinement loops. Use `"route": "over"` or `"under"` for long skips that would cross other modules. Merges (several inputs into one node) are fine and look right.
+- Add a `legend` when there are two edge styles. Add a one- or two-sentence `caption`.
+
+Render:
+```bash
+python scripts/compose_diagram.py figures/<name>/spec.json           # icons (+ art thumbnails if present)
+python scripts/flux_art.py figures/<name>/spec.json                  # optional: thumbnails for nodes with "art"
+```
+For thumbnails, give `art` only to the 2-4 nodes that show something concrete (a scene, a robot, a point cloud, an image grid). Keep icons for abstract steps.
+
+Review the PNG (required), checking specifically:
+- No arrow passes through a node or crosses a text label. If one does, reorder nodes in the grid, change `row`/`col`, or set `route`.
+- Module titles fit their module.
+- Every node, symbol and number is from the paper.
+
+Iterate until clean, at most 4 rounds.
+
+### Paper-style charts
+
+```python
+import sys; sys.path.insert(0, "<skill dir>/scripts")
+from plot_style import apply, PALETTE, SOFT, HATCHES, bar_labels, save
+apply()
+```
+- Combine 2-3 panels in one figure, labelled (a)/(b)/(c), each answering one question. Pick the form that fits: grouped bars with value labels (compare methods), dumbbell or slope chart (before/after, A vs B), line chart (scaling), diverging bars (gains and losses vs a baseline), donut (a taxonomy split).
+- Give each panel a one-line takeaway title ("Zero-shot: tasks done, preferences ignored").
+- Use hatching or marker shape so series differ by more than color. Put value labels on bars. Use one y-axis per panel.
+- `save(fig, "results.png")` also writes an SVG. Worked example: `examples/libero-perm-dense/results_plot.py`.
+- Review the PNG: no overlapping tick labels, legends or value labels; every value matches the paper's table.
+
+### Hybrid mode: exact SVG text + FLUX art (card figures)
 
 Needs `pip install resvg-py pillow` and, for the art, a free Cloudflare account with `CF_ACCOUNT_ID` and `CF_API_TOKEN` set (see README). Free tier is roughly 100-170 images a day.
 

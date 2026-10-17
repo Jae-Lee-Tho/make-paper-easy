@@ -68,7 +68,9 @@ def main() -> int:
     art_dir.mkdir(parents=True, exist_ok=True)
 
     made, failed = 0, 0
-    for i, panel in enumerate(spec.get("panels", [])):
+    # simple card figures use "panels"; dense diagrams keep nodes inside "groups"
+    items = spec.get("panels", []) + [n for g in spec.get("groups", []) for n in g.get("nodes", [])]
+    for i, panel in enumerate(items):
         if not panel.get("art"):
             continue
         out = art_dir / f"{panel['id']}.jpg"

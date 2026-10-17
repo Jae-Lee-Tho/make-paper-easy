@@ -1,0 +1,74 @@
+{
+  "title": "LIBERO-PeRM: preference-conditioned data generation pipeline",
+  "caption": "Inputs are a LIBERO layout plus task and preference language. A VLM grounds the preference and edits the layout (retrying until the edit passes simulation), plans paired subtasks, and a heuristic skill library with OMPL produces demos. Each preference type gets its own automatic satisfaction metric.",
+  "art_dir": "art",
+  "groups": [
+    {
+      "id": "inputs", "title": "Inputs", "style": "plain", "color": "gray", "cols": 1, "rows": 3,
+      "nodes": [
+        {"id": "in_layout", "row": 0, "title": "Initial layout", "sub": "LIBERO scene", "icon": "scene"},
+        {"id": "in_task", "row": 1, "title": "Task language", "math": "ℓ_{task}", "sub": "\"Put a mug on the plate\"", "icon": "chat"},
+        {"id": "in_pref", "row": 2, "title": "Preference", "math": "ℓ_{pref}", "sub": "\"Serve a double portion\"", "icon": "user"}
+      ]
+    },
+    {
+      "id": "g1", "title": "1. Selection & layout edit", "color": "lavender", "cols": 1, "rows": 3,
+      "nodes": [
+        {"id": "ground", "row": 0, "title": "VLM grounding", "sub": "select preference target", "icon": "vlm"},
+        {"id": "edit", "row": 1, "title": "Layout & task edit", "sub": "Profile: minimal edit", "icon": "layers"},
+        {"id": "trial", "row": 2, "title": "Simulate & validate", "sub": "reject invalid edits", "icon": "check"}
+      ]
+    },
+    {
+      "id": "g2", "title": "2. Preference-conditioned generation", "color": "sky", "cols": 2, "rows": 3,
+      "nodes": [
+        {"id": "planner", "row": 0, "col": 0, "title": "VLM planner", "sub": "no-pref → pref plan", "icon": "vlm"},
+        {"id": "context", "row": 1, "col": 0, "title": "Profile context", "sub": "steers subtask choice", "icon": "plan"},
+        {"id": "skills", "row": 0, "col": 1, "title": "Heuristic skill library", "sub": "1 human demo / skill", "icon": "gear"},
+        {"id": "ompl", "row": 1, "col": 1, "title": "OMPL + smoothing", "sub": "random initial states", "icon": "path"},
+        {"id": "rollout", "row": 2, "col": 1, "title": "Robot rollouts", "math": "τ = (s_{t}, a_{t})", "icon": "robot"}
+      ]
+    },
+    {
+      "id": "g3", "title": "3. Satisfaction metrics", "color": "peach", "cols": 1, "rows": 3,
+      "nodes": [
+        {"id": "m_motion", "row": 0, "title": "Motion", "math": "d(τ, o_{avoid})", "sub": "trajectory quantity", "icon": "metric"},
+        {"id": "m_skill", "row": 1, "title": "Skill", "sub": "waypoints + VLM image check", "icon": "image"},
+        {"id": "m_profile", "row": 2, "title": "User profile", "sub": "executed subtask plan", "icon": "plan"}
+      ]
+    },
+    {
+      "id": "out", "title": "Outputs", "color": "mint", "cols": 1, "rows": 3,
+      "nodes": [
+        {"id": "o_meta", "row": 0, "title": "Subtask metadata", "sub": "plans, goal images", "icon": "doc"},
+        {"id": "o_label", "row": 1, "title": "Satisfaction label", "math": "d ∈ {0, ¼, ¾, 1}", "icon": "chart"},
+        {"id": "o_demos", "row": 2, "title": "Paired demos", "sub": "312 tasks · 40.8K episodes", "icon": "db"}
+      ]
+    }
+  ],
+  "edges": [
+    {"from": "in_layout", "to": "ground"},
+    {"from": "in_task", "to": "ground"},
+    {"from": "in_pref", "to": "ground"},
+    {"from": "ground", "to": "edit"},
+    {"from": "edit", "to": "trial"},
+    {"from": "trial", "to": "edit", "style": "dashed", "color": "accent", "label": "retry"},
+    {"from": "trial", "to": "planner", "label": "ready layout"},
+    {"from": "context", "to": "planner"},
+    {"from": "planner", "to": "skills", "label": "plan"},
+    {"from": "skills", "to": "ompl"},
+    {"from": "ompl", "to": "rollout"},
+    {"from": "rollout", "to": "m_motion"},
+    {"from": "rollout", "to": "m_skill"},
+    {"from": "rollout", "to": "m_profile"},
+    {"from": "m_motion", "to": "o_label"},
+    {"from": "m_skill", "to": "o_label"},
+    {"from": "m_profile", "to": "o_label"},
+    {"from": "planner", "to": "o_meta", "route": "over"},
+    {"from": "rollout", "to": "o_demos", "route": "under"}
+  ],
+  "legend": [
+    {"label": "data flow", "style": "solid"},
+    {"label": "validation feedback", "style": "dashed", "color": "accent"}
+  ]
+}
