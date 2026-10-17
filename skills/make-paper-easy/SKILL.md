@@ -32,22 +32,24 @@ make-paper-easy/<slug>/
 
 ## Step 1 - Get the paper as Markdown
 
-Use [MarkItDown](https://github.com/microsoft/markitdown). Install if missing:
+**Never open the PDF with your file-reading tool.** A PDF read directly is sent to the model as one image per page plus the page text. The converter's clean text keeps the same words and numbers for about 60% fewer tokens (about 82% fewer on high-resolution models). Install once if missing:
 
 ```bash
 pip install 'markitdown[pdf]'
 ```
 
-Run the bundled converter (it accepts a local file or a URL):
+Run the bundled converter:
 
 ```bash
-python scripts/convert.py <input_path_or_url> <output.md>
+python scripts/convert.py <pdf_path_or_url> make-paper-easy/<slug>/paper.md
 ```
+
+It prints the token estimate versus reading the PDF directly. Mention the savings in one short clause in your final reply, e.g. "(read as clean text: ~14K tokens instead of ~38K)".
 
 By input type:
 - **Attached PDF**: copy it into its own empty folder and convert the copy. Never edit the original.
-- **PDF URL**: try `convert.py` with the URL directly. If the environment blocks the download, do not retry with other shell tools. For arXiv, switch to the HTML or abs page (below). Otherwise ask the user to attach the PDF.
-- **Webpage** (arXiv abs/html, project page): use your web-fetch tool and ask for the full paper text as Markdown, keeping section headings, tables and figure captions. Save it to `<short-title>.md`. For arXiv, prefer `arxiv.org/html/<id>` when it exists; fall back to the abs page.
+- **PDF URL or arXiv link**: pass it straight to `convert.py`. arXiv `abs/` and `html/` links are fetched as the PDF automatically. If the download is blocked, do not retry with other shell tools; for arXiv, fall back to the HTML page with your web-fetch tool (below). Otherwise ask the user to attach the PDF.
+- **Webpage** (project page, publisher page, or arXiv HTML when the PDF is unreachable): `convert.py <url>` uses MarkItDown. If that fails, use your web-fetch tool and ask for the full paper text as Markdown, keeping section headings, tables and figure captions.
 
 Save it as `make-paper-easy/<slug>/paper.md`.
 Clean obvious extraction junk (repeated page headers/footers, broken hyphenation) only if quick; never rewrite the paper's content.

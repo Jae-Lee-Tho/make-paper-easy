@@ -64,6 +64,45 @@ def test_convert_local_html(tmp_path):
     assert "A Test Paper" in md and "42.0 BLEU" in md
 
 
+def make_two_column_pdf(path):
+    """A 2-page, two-column paper-like PDF: the layout that breaks naive extractors."""
+    from reportlab.lib.pagesizes import letter
+    from reportlab.lib.styles import getSampleStyleSheet
+    from reportlab.platypus import BaseDocTemplate, Frame, PageTemplate, Paragraph
+    w, h = letter
+    gap, m = 18, 54
+    col = (w - 2 * m - gap) / 2
+    doc = BaseDocTemplate(str(path), pagesize=letter)
+    doc.addPageTemplates([PageTemplate(frames=[Frame(m, m, col, h - 2 * m), Frame(m + col + gap, m, col, h - 2 * m)])])
+    body = getSampleStyleSheet()["BodyText"]
+    story = []
+    for i in range(1, 41):
+        story.append(Paragraph(f"Paragraph {i}: the encoder reaches {20 + i}.5 BLEU on newstest2014 while the "
+                               f"decoder uses multi-head attention with eight heads. " * 2, body))
+    doc.build(story)
+
+
+def test_convert_two_column_pdf(tmp_path):
+    pdf = tmp_path / "paper.pdf"
+    make_two_column_pdf(pdf)
+    r = run(SCRIPTS / "convert.py", pdf, tmp_path / "paper.md")
+    assert r.returncode == 0, r.stderr
+    md = (tmp_path / "paper.md").read_text()
+    assert "fewer)" in r.stdout and "high-resolution" in r.stdout          # token report printed
+    assert "<!-- page 2 -->" in md
+    assert "| --- |" not in md and "  " not in md                         # no fake tables / padding
+    for i in range(1, 41):                                                # every number survives
+        assert f"{20 + i}.5 BLEU" in md
+    order = [md.index(f"Paragraph {i}:") for i in range(1, 41)]
+    assert order == sorted(order), "two-column reading order broken"
+    assert "multi-head attention with eight heads" in md                  # words not glued together
+
+
+def test_convert_bad_url_exits_4(tmp_path):
+    r = run(SCRIPTS / "convert.py", "http://127.0.0.1:9/paper.pdf", tmp_path / "x.md")
+    assert r.returncode == 4 and "Traceback" not in r.stderr
+
+
 # ---------- compose_diagram.py ----------
 @pytest.mark.parametrize("example", ["transformer", "libero-perm-dense"])
 def test_dense_diagram_renders_cleanly(example, tmp_path):

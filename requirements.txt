@@ -1,5 +1,6 @@
 # Core: paper → Markdown, figures, study sheet (PNG + PDF)
 markitdown[pdf]>=0.1
+pypdfium2>=4.0        # PDF text extraction (already pulled in by markitdown[pdf]; pinned here explicitly)
 resvg-py>=0.5
 pillow>=10
 matplotlib>=3.8
