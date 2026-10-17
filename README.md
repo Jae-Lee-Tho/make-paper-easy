@@ -33,7 +33,7 @@ npx skills add <your-username>/make-paper-easy
 git clone https://github.com/<your-username>/make-paper-easy.git ~/make-paper-easy
 mkdir -p ~/.claude/skills
 ln -s ~/make-paper-easy/skills/make-paper-easy ~/.claude/skills/make-paper-easy
-pip install 'markitdown[pdf]' resvg-py pillow matplotlib
+pip install -r ~/make-paper-easy/requirements.txt
 ```
 
 **Claude.ai / Claude app:** zip the `skills/make-paper-easy/` folder and upload it under **Settings → Capabilities → Skills**.
@@ -46,7 +46,7 @@ pip install 'markitdown[pdf]' resvg-py pillow matplotlib
 /make-paper-easy <link> in Spanish   # English by default
 ```
 
-You get **one study sheet**, `make-paper-easy/<paper>/<paper>-easy.png` (plus a PDF), with everything in reading order:
+You get **one study sheet**, `make-paper-easy/<paper>/<paper>-easy.png`, plus a **printable multi-page PDF with selectable, searchable text**. Everything is in reading order:
 TL;DR → background terms → the problem → what they did → method diagram → key findings → results charts → limitations.
 
 The parts are saved next to it, in case you want them: `paper.md` (the full paper), `summary.json`, and `figure`/`results` as both PNG and editable SVG.
@@ -121,6 +121,13 @@ examples/
 ├── transformer/           # Attention Is All You Need: sheet, diagram, charts
 ├── libero-perm-dense/     # dense diagram spec + results chart script (LIBERO-PeRM, arXiv 2610.22372)
 └── libero-perm/           # simple card figure spec
+```
+
+## Development
+
+```bash
+pip install -r requirements.txt pytest pypdf
+python -m pytest -q        # 18 smoke tests, no network or API keys needed
 ```
 
 ## Credits
